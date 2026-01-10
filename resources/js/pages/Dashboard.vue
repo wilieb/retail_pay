@@ -26,7 +26,6 @@
              <h3 class="text-sm font-medium text-gray-500 mb-1">Total Products</h3>
               <p class="text-3xl font-bold text-gray-900 mb-1">{{ stats.totalProducts }}</p>
           </div>
-          <span class="text-xs font-semibold text-[#10b981] bg-[#10b981]/10 px-2.5 py-1 rounded-full">In Stock</span>
         </div>
       </div>
 
@@ -36,7 +35,6 @@
             <h3 class="text-sm font-medium text-gray-500 mb-1">Low Stock Items</h3>
             <p class="text-3xl font-bold text-gray-900 mb-1">{{ stats.lowStockItems }}</p>
           </div>
-          <span class="text-xs font-semibold text-[#f43f5e] bg-[#f43f5e]/10 px-2.5 py-1 rounded-full">Out of Stock</span>
         </div>
       </div>
 
@@ -46,7 +44,6 @@
             <h3 class="text-sm font-medium text-gray-500 mb-1">Inventory Value</h3>
             <p class="text-3xl font-bold text-gray-900 mb-1">KES {{ formatNumber(stats.inventoryValue) }}</p>
           </div>
-          <span class="text-xs font-semibold text-[#10b981] bg-[#10b981]/10 px-2.5 py-1 rounded-full">Value</span>
         </div>
       </div>
 
@@ -56,7 +53,6 @@
             <h3 class="text-sm font-medium text-gray-500 mb-1">Total Stock Units</h3>
             <p class="text-3xl font-bold text-gray-900 mb-1">{{ formatNumber(stats.totalStockUnits) }}</p>
           </div>
-          <span class="text-xs font-semibold text-[#7c3aed] bg-[#7c3aed]/10 px-2.5 py-1 rounded-full">Units</span>
         </div>
       </div>
 
@@ -66,7 +62,6 @@
             <h3 class="text-sm font-medium text-gray-500 mb-1">Total Sales</h3>
             <p class="text-3xl font-bold text-gray-900 mb-1">{{ stats.totalSales }}</p>
           </div>
-          <span class="text-xs font-semibold text-[#2563eb] bg-[#2563eb]/10 px-2.5 py-1 rounded-full">Transactions</span>
         </div>
       </div>
 
@@ -76,7 +71,6 @@
             <h3 class="text-sm font-medium text-gray-500 mb-1">Total Revenue</h3>
             <p class="text-3xl font-bold text-gray-900 mb-1">KES {{ formatNumber(stats.totalRevenue) }}</p>
           </div>
-          <span class="text-xs font-semibold text-[#10b981] bg-[#10b981]/10 px-2.5 py-1 rounded-full">Revenue</span>
         </div>
       </div>
 
@@ -86,7 +80,6 @@
             <h3 class="text-sm font-medium text-gray-500 mb-1">Pending Transfers</h3>
             <p class="text-3xl font-bold text-gray-900 mb-1">{{ stats.pendingTransfers }}</p>
           </div>
-          <span class="text-xs font-semibold text-[#fbbf24] bg-[#fbbf24]/10 px-2.5 py-1 rounded-full">Approval</span>
         </div>
       </div>
     </div>
