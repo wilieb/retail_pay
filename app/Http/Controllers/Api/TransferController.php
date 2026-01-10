@@ -23,10 +23,12 @@ class TransferController
                   ->orWhere('to_store_id', $request->user()->store_id);
             });
         } elseif ($request->user()->role->name === 'branch_manager') {
-            $query->whereHas('fromStore', function ($q) use ($request) {
-                $q->where('branch_id', $request->user()->branch_id);
-            })->orWhereHas('toStore', function ($q) use ($request) {
-                $q->where('branch_id', $request->user()->branch_id);
+            $query->where(function ($q) use ($request) {
+                $q->whereHas('fromStore', function ($subQ) use ($request) {
+                    $subQ->where('branch_id', $request->user()->branch_id);
+                })->orWhereHas('toStore', function ($subQ) use ($request) {
+                    $subQ->where('branch_id', $request->user()->branch_id);
+                });
             });
         }
 
