@@ -6,5 +6,12 @@ use Laravel\Sanctum\PersonalAccessToken as SanctumPersonalAccessToken;
 
 class PersonalAccessToken extends SanctumPersonalAccessToken
 {
-    //
+    protected $fillable = [
+        'name',
+        'token',
+        'abilities',
+        'expires_at',
+        'tokenable_type',
+        'tokenable_id',
+    ];
 }

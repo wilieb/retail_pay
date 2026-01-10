@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import api from '@/js/lib/axios'
+import { api } from '@/lib/axios'
 
 const setCookie = (name, value, days = 7) => {
   const date = new Date()

@@ -29,12 +29,17 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             const authStore = useAuthStore()
-            authStore.logout()
-            window.location.href = '/login'
+            if (authStore.token) {
+                authStore.setToken(null)
+                authStore.setUser(null)
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login'
+                }
+            }
         }
         return Promise.reject(error)
     }
 )
 
 export default api
-export { axios }
+export { api, axios }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Permision extends Model
 {
@@ -10,6 +11,7 @@ class Permision extends Model
         'name',
         'description'
     ];
+
     protected $table = 'permisions';
 
     public function roles(): BelongsToMany

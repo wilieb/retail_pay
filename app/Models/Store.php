@@ -3,14 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Store extends Model
 {
     protected $fillable = [
-        'id',
         'name',
-        'branch_id'
+        'branch_id',
+        'location',
+        'phone',
+        'email',
+        'manager_name'
     ];
+
     protected $table = 'stores';
 
     public function branch(): BelongsTo
@@ -18,9 +24,9 @@ class Store extends Model
         return $this->belongsTo(Branch::class, 'branch_id');
     }
 
-    public function inventories(): HasMany
+    public function products(): HasMany
     {
-        return $this->hasMany(Transaction::class, 'store_id');
+        return $this->hasMany(Product::class, 'store_id');
     }
 
     public function users(): HasMany

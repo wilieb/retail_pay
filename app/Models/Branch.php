@@ -3,13 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Branch extends Model
 {
     protected $fillable = [
-        'id',
-        'name'
+        'name',
+        'location',
+        'phone',
+        'email',
+        'manager_name'
     ];
+
     protected $table = 'branches';
 
     public function stores(): HasMany
