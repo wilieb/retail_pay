@@ -14,22 +14,28 @@
       </div>
 
       <div class="px-6 py-4">
-        <slot />
+        <slot name="content">
+          <slot />
+        </slot>
       </div>
 
-      <div class="border-t border-gray-100 px-6 py-4 flex gap-3 justify-end">
-        <button 
-          @click="$emit('close')"
-          class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
-        >
-          Cancel
-        </button>
-        <button 
-          @click="$emit('submit')"
-          class="px-4 py-2 bg-[#2563eb] text-white hover:bg-[#1d4ed8] rounded-lg font-medium transition-colors"
-        >
-          Submit
-        </button>
+      <div class="border-t border-gray-100 px-6 py-4">
+        <slot name="footer">
+          <div class="flex gap-3 justify-end">
+            <button 
+              @click="$emit('close')"
+              class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              @click="$emit('submit')"
+              class="px-4 py-2 bg-[#2563eb] text-white hover:bg-[#1d4ed8] rounded-lg font-medium transition-colors"
+            >
+              Submit
+            </button>
+          </div>
+        </slot>
       </div>
     </div>
   </div>

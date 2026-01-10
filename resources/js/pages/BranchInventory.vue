@@ -1,246 +1,161 @@
 <template>
   <div class="p-6">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">Branch Inventory Overview</h1>
-        <p class="text-gray-500 mt-1">Aggregate inventory view by branch and store</p>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <div class="bg-white rounded-lg p-6 shadow-xs border border-gray-100">
-        <p class="text-sm text-gray-500 mb-2">Total Branches</p>
-        <p class="text-3xl font-bold text-gray-900">{{ branches.length }}</p>
-      </div>
-      <div class="bg-white rounded-lg p-6 shadow-xs border border-gray-100">
-        <p class="text-sm text-gray-500 mb-2">Total Stores</p>
-        <p class="text-3xl font-bold text-gray-900">{{ stores.length }}</p>
-      </div>
-      <div class="bg-white rounded-lg p-6 shadow-xs border border-gray-100">
-        <p class="text-sm text-gray-500 mb-2">Total SKUs</p>
-        <p class="text-3xl font-bold text-gray-900">{{ totalProducts }}</p>
-      </div>
-      <div class="bg-white rounded-lg p-6 shadow-xs border border-gray-100">
-        <p class="text-sm text-gray-500 mb-2">Total Inventory Value</p>
-        <p class="text-3xl font-bold text-gray-900">KES {{ formatNumber(totalValue) }}</p>
-      </div>
-    </div>
-
-    <div class="space-y-6">
-      <div 
-        v-for="branch in branches"
-        :key="branch.id"
-        class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
-      >
-        <div class="bg-gradient-to-r from-[#2563eb] to-blue-600 p-6 text-white">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-2xl font-bold">{{ branch.name }}</h2>
-              <p class="text-blue-100 text-sm mt-1">{{ branch.stores?.length || 0 }} stores</p>
-            </div>
-            <button 
-              @click="toggleBranch(branch.id)"
-              class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-            >
-              <svg 
-                :class="['w-5 h-5', expandedBranches.includes(branch.id) ? 'rotate-180' : '']" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div v-if="expandedBranches.includes(branch.id)" class="divide-y divide-gray-100">
-          <div 
-            v-for="store in branch.stores"
-            :key="store.id"
-            class="p-6 hover:bg-gray-50 transition-colors"
-          >
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-bold text-gray-900">{{ store.name }}</h3>
-              <button 
-                @click="viewStoreInventory(store)"
-                class="px-4 py-2 text-sm bg-[#2563eb]/10 text-[#2563eb] rounded-lg hover:bg-[#2563eb]/20 transition-colors font-medium"
-              >
-                View Details
-              </button>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div class="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                <p class="text-xs text-gray-500">Total Products</p>
-                <p class="text-2xl font-bold text-gray-900">{{ store.products?.length || 0 }}</p>
-              </div>
-              <div class="p-3 bg-green-50 rounded-lg border border-green-100">
-                <p class="text-xs text-gray-500">Total Units</p>
-                <p class="text-2xl font-bold text-gray-900">{{ getTotalUnits(store) }}</p>
-              </div>
-              <div class="p-3 bg-purple-50 rounded-lg border border-purple-100">
-                <p class="text-xs text-gray-500">Total Value</p>
-                <p class="text-2xl font-bold text-gray-900">KES {{ formatNumber(getStoreValue(store)) }}</p>
-              </div>
-            </div>
-
-            <div v-if="store.products?.length" class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-4 py-2 text-left font-semibold text-gray-700">Product</th>
-                    <th class="px-4 py-2 text-left font-semibold text-gray-700">SKU</th>
-                    <th class="px-4 py-2 text-right font-semibold text-gray-700">Quantity</th>
-                    <th class="px-4 py-2 text-right font-semibold text-gray-700">Unit Price</th>
-                    <th class="px-4 py-2 text-right font-semibold text-gray-700">Total Value</th>
-                    <th class="px-4 py-2 text-center font-semibold text-gray-700">Status</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                  <tr v-for="product in store.products" :key="product.id" class="hover:bg-gray-50">
-                    <td class="px-4 py-3 font-medium text-gray-900">{{ product.name }}</td>
-                    <td class="px-4 py-3 text-gray-600">{{ product.sku }}</td>
-                    <td class="px-4 py-3 text-right text-gray-900 font-semibold">{{ product.quantity }}</td>
-                    <td class="px-4 py-3 text-right text-gray-700">KES {{ formatNumber(product.retail_price) }}</td>
-                    <td class="px-4 py-3 text-right text-gray-900 font-semibold">KES {{ formatNumber(product.quantity * product.retail_price) }}</td>
-                    <td class="px-4 py-3 text-center">
-                      <StatusBadge :status="getStockStatusColor(product.quantity)">
-                        {{ product.quantity === 0 ? 'Out' : product.quantity < 10 ? 'Low' : 'In Stock' }}
-                      </StatusBadge>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div v-else class="text-center py-6 text-gray-500">
-              No products in inventory
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <Modal 
-      v-if="showStoreModal"
-      :title="`${selectedStore?.name} - Detailed Inventory`"
-      @close="showStoreModal = false"
+    <DataTable
+      title="Branch Inventory"
+      subtitle="Track and manage inventory across branches and stores"
+      :columns="columns"
+      :data="inventoryData"
+      :branches="branches"
+      :stores="stores"
+      drawer-title="Store Inventory Details"
+      @view="handleView"
     >
-      <div class="space-y-4">
-        <div class="grid grid-cols-3 gap-4">
-          <div class="p-3 bg-blue-50 rounded-lg">
-            <p class="text-xs text-gray-500">Products</p>
-            <p class="text-2xl font-bold">{{ selectedStore?.products?.length || 0 }}</p>
+      <template #drawer-content="{ item }">
+        <div class="space-y-6">
+          <div class="flex items-start gap-4 p-5 bg-gradient-to-br from-[#2563eb]/5 to-blue-50 rounded-xl border border-[#2563eb]/10">
+            <div class="w-14 h-14 bg-[#2563eb] rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h4 class="text-xl font-bold text-gray-900 mb-1">{{ item.store_name }}</h4>
+              <p class="text-sm text-gray-500">{{ item.branch_name }}</p>
+            </div>
           </div>
-          <div class="p-3 bg-green-50 rounded-lg">
-            <p class="text-xs text-gray-500">Units</p>
-            <p class="text-2xl font-bold">{{ getTotalUnits(selectedStore) }}</p>
-          </div>
-          <div class="p-3 bg-purple-50 rounded-lg">
-            <p class="text-xs text-gray-500">Value</p>
-            <p class="text-2xl font-bold">KES {{ formatNumber(getStoreValue(selectedStore)) }}</p>
-          </div>
-        </div>
 
-        <div class="overflow-x-auto max-h-96 overflow-y-auto">
-          <table class="w-full text-sm">
-            <thead class="bg-gray-50 sticky top-0">
-              <tr>
-                <th class="px-3 py-2 text-left font-semibold text-gray-700">Product</th>
-                <th class="px-3 py-2 text-right font-semibold text-gray-700">Qty</th>
-                <th class="px-3 py-2 text-right font-semibold text-gray-700">Value</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr v-for="product in selectedStore?.products" :key="product.id" class="hover:bg-gray-50">
-                <td class="px-3 py-2 font-medium text-gray-900">{{ product.name }}</td>
-                <td class="px-3 py-2 text-right text-gray-900">{{ product.quantity }}</td>
-                <td class="px-3 py-2 text-right font-semibold">KES {{ formatNumber(product.quantity * product.retail_price) }}</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 bg-gray-50 rounded-xl">
+              <p class="text-sm text-gray-500 mb-1">Total Products</p>
+              <p class="text-2xl font-bold text-gray-900">{{ item.product_count }}</p>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-xl">
+              <p class="text-sm text-gray-500 mb-1">Total Units</p>
+              <p class="text-2xl font-bold text-gray-900">{{ item.total_units }}</p>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-[#10b981]/10 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5 text-[#10b981]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <span class="text-sm font-medium text-gray-600">Total Inventory Value</span>
+              </div>
+              <span class="text-lg font-bold text-gray-900">KES {{ formatNumber(item.total_value) }}</span>
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-[#fbbf24]/10 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5 text-[#fbbf24]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                  </svg>
+                </div>
+                <span class="text-sm font-medium text-gray-600">Stock Status</span>
+              </div>
+              <span class="text-sm font-semibold" :class="getInventoryStatusClass(item.total_units)">
+                {{ getInventoryStatus(item.total_units) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-gray-100">
+            <p class="text-xs text-gray-400 mb-2">Last Updated</p>
+            <p class="text-sm text-gray-600">{{ formatDate(item.updated_at) }}</p>
+          </div>
         </div>
-      </div>
-    </Modal>
+      </template>
+    </DataTable>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import Modal from '@/components/Modal.vue'
-import StatusBadge from '@/components/StatusBadge.vue'
+import { useAuthStore } from '@/stores/auth'
+import DataTable from '@/components/DataTables.vue'
 import { api } from '@/lib/axios'
 
+const authStore = useAuthStore()
+
+const columns = [
+  { key: 'store_name', label: 'Store Name' },
+  { key: 'branch_name', label: 'Branch' },
+  { key: 'product_count', label: 'Products', cellClass: 'text-center' },
+  { key: 'total_units', label: 'Units', cellClass: 'text-right font-semibold' },
+  { key: 'total_value', label: 'Total Value', cellClass: 'text-right font-semibold', format: (val) => `KES ${formatNumber(val)}` }
+]
+
+const inventoryData = ref([])
 const branches = ref([])
-const stores = ref([])  
-const expandedBranches = ref([])
-const showStoreModal = ref(false)
-const selectedStore = ref(null)
-
-const totalProducts = computed(() => {
-  return stores.value.reduce((sum, store) => sum + (store.products?.length || 0), 0)
-})
-
-const totalValue = computed(() => {
-  return stores.value.reduce((sum, store) => sum + getStoreValue(store), 0)
-})
+const stores = ref([])
 
 const formatNumber = (num) => {
   return new Intl.NumberFormat('en-US').format(num)
 }
 
-const getTotalUnits = (store) => {
-  return (store.products || []).reduce((sum, p) => sum + (p.quantity || 0), 0)
+const formatDate = (date) => {
+  if (!date) return 'N/A'
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
-const getStoreValue = (store) => {
-  return (store.products || []).reduce((sum, p) => sum + (p.quantity * p.retail_price), 0)
+const getInventoryStatus = (units) => {
+  if (units === 0) return 'Out of Stock'
+  if (units < 50) return 'Low Stock'
+  if (units < 200) return 'Moderate'
+  return 'Optimal'
 }
 
-const getStockStatusColor = (quantity) => {
-  if (quantity === 0) return 'error'
-  if (quantity < 10) return 'warning'
-  return 'success'
+const getInventoryStatusClass = (units) => {
+  if (units === 0) return 'text-red-600 font-semibold'
+  if (units < 50) return 'text-yellow-600 font-semibold'
+  if (units < 200) return 'text-blue-600 font-semibold'
+  return 'text-green-600 font-semibold'
 }
 
-const toggleBranch = (branchId) => {
-  const index = expandedBranches.value.indexOf(branchId)
-  if (index > -1) {
-    expandedBranches.value.splice(index, 1)
-  } else {
-    expandedBranches.value.push(branchId)
-  }
+const handleView = (item) => {
+  // Drawer will be handled by DataTable component
 }
 
-const viewStoreInventory = (store) => {
-  selectedStore.value = store
-  showStoreModal.value = true
-}
-
-const fetchBranches = async () => {
+const fetchInventory = async () => {
   try {
-    const response = await api.get('/branches')
-    const data = response.data.data || response.data
-    branches.value = data
-    if (data.length > 0) {
-      expandedBranches.value = [data[0].id]
-    }
+    const storesRes = await api.get('/stores')
+    const branchesRes = await api.get('/branches')
+    
+    stores.value = storesRes.data.data || storesRes.data
+    branches.value = branchesRes.data.data || branchesRes.data
+    
+    // Aggregate inventory by store
+    inventoryData.value = stores.value.map(store => {
+      const totalUnits = (store.products || []).reduce((sum, p) => sum + (p.quantity || 0), 0)
+      const totalValue = (store.products || []).reduce((sum, p) => sum + (p.quantity * p.unit_price || 0), 0)
+      
+      return {
+        id: store.id,
+        store_name: store.name,
+        branch_name: store.branch?.name || 'N/A',
+        product_count: store.products?.length || 0,
+        total_units: totalUnits,
+        total_value: totalValue,
+        updated_at: store.updated_at,
+        ...store
+      }
+    })
   } catch (error) {
-    console.error('Error fetching branches:', error)
-  }
-}
-
-const fetchStores = async () => {
-  try {
-    const response = await api.get('/stores')
-    stores.value = response.data.data || response.data
-  } catch (error) {
-    console.error('Error fetching stores:', error)
+    console.error('Error fetching inventory:', error)
   }
 }
 
 onMounted(() => {
-  fetchBranches()
-  fetchStores()
+  fetchInventory()
 })
 </script>

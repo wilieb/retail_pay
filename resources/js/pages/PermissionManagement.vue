@@ -226,6 +226,10 @@ const fetchRoles = async () => {
   try {
     const response = await api.get('/roles')
     roles.value = response.data.data || response.data
+    // Select first role by default on mount
+    if (roles.value.length > 0 && !selectedRole.value) {
+      await selectRole(roles.value[0])
+    }
   } catch (error) {
     console.error('Error fetching roles:', error)
   }

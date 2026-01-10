@@ -1,22 +1,11 @@
 <template>
   <div class="p-6">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">Staff Management</h1>
-        <p class="text-gray-500 mt-1">Manage users and their roles</p>
-      </div>
-      <button 
-        @click="showAddModal = true"
-        class="flex items-center gap-2 px-6 py-2.5 bg-[#2563eb] text-white rounded-xl hover:bg-[#1d4ed8] transition-colors font-medium"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        Add User
-      </button>
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Staff Management</h1>
+      <p class="text-gray-500 mt-1">Manage users and their roles</p>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-6">
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead class="bg-gray-50 border-b border-gray-100">
@@ -40,11 +29,7 @@
                 </div>
               </td>
               <td class="px-6 py-4 text-sm text-gray-600">{{ user.email }}</td>
-              <td class="px-6 py-4">
-                <StatusBadge :status="getRoleStatus(user.role?.name)">
-                  {{ user.role?.name || 'N/A' }}
-                </StatusBadge>
-              </td>
+              <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ user.role?.name || 'N/A' }}</td>
               <td class="px-6 py-4 text-sm text-gray-700">{{ user.branch?.name || '-' }}</td>
               <td class="px-6 py-4 text-sm text-gray-700">{{ user.store?.name || '-' }}</td>
               <td class="px-6 py-4">
@@ -72,13 +57,51 @@
             </tr>
             <tr v-if="!users.length">
               <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                No users found. Add your first user to get started.
+                No users found
               </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <Modal v-model="showDeleteModal" title="Delete User" :closeable="!loadingDelete">
+      <template #content>
+        <div class="space-y-4">
+          <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-red-800 font-medium">Are you sure you want to delete this user?</p>
+          </div>
+          <div class="p-4 bg-gray-50 rounded-lg">
+            <p class="text-sm text-gray-600 mb-1">User Name</p>
+            <p class="text-lg font-bold text-gray-900">{{ userToDelete?.name }}</p>
+          </div>
+          <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p class="text-sm text-yellow-800">
+              <strong>Warning:</strong> This action cannot be undone. The user will be permanently deleted.
+            </p>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button 
+            @click="showDeleteModal = false"
+            :disabled="loadingDelete"
+            class="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-100 rounded-lg font-medium transition"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="confirmDelete"
+            :disabled="loadingDelete"
+            class="px-6 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg font-medium transition"
+          >
+            {{ loadingDelete ? 'Deleting...' : 'Delete User' }}
+          </button>
+        </div>
+      </template>
+    </Modal>
 
     <Modal 
       v-if="showAddModal"
@@ -163,24 +186,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import Modal from '@/components/Modal.vue'
-import StatusBadge from '@/components/StatusBadge.vue'
 import { api } from '@/lib/axios'
 
 const users = ref([])
-const roles = ref([])
-const branches = ref([])
-const stores = ref([])
-const showAddModal = ref(false)
-const formData = ref({ name: '', email: '', password: '', role_id: '', branch_id: '', store_id: '' })
-
-const getRoleStatus = (roleName) => {
-  const statusMap = {
-    'admin': 'info',
-    'branch_manager': 'warning',
-    'store_manager': 'success'
-  }
-  return statusMap[roleName] || 'secondary'
-}
+const showDeleteModal = ref(false)
+const userToDelete = ref(null)
+const loadingDelete = ref(false)
 
 const fetchUsers = async () => {
   try {
@@ -191,75 +202,45 @@ const fetchUsers = async () => {
   }
 }
 
-const fetchRoles = async () => {
+const openDeleteModal = (user) => {
+  userToDelete.value = user
+  showDeleteModal.value = true
+}
+
+const confirmDelete = async () => {
+  if (!userToDelete.value) return
+  
+  loadingDelete.value = true
   try {
-    const response = await api.get('/roles')
-    roles.value = response.data.data || response.data
+    await api.delete(`/users/${userToDelete.value.id}`)
+    showDeleteModal.value = false
+    userToDelete.value = null
+    await fetchUsers()
   } catch (error) {
-    console.error('Error fetching roles:', error)
+    console.error('Error deleting user:', error)
+  } finally {
+    loadingDelete.value = false
   }
 }
 
-const fetchBranches = async () => {
-  try {
-    const response = await api.get('/branches')
-    branches.value = response.data.data || response.data
-  } catch (error) {
-    console.error('Error fetching branches:', error)
-  }
-}
-
-const fetchStores = async () => {
-  try {
-    const response = await api.get('/stores')
-    stores.value = response.data.data || response.data
-  } catch (error) {
-    console.error('Error fetching stores:', error)
-  }
-}
-
-const saveUser = async () => {
-  try {
-    if (formData.value.id) {
-      await api.put(`/users/${formData.value.id}`, formData.value)
-    } else {
-      await api.post('/users', formData.value)
+// Make openDeleteModal available to template
+const deleteUser = (user) => {
+  if (typeof user === 'object') {
+    openDeleteModal(user)
+  } else {
+    const userObj = users.value.find(u => u.id === user)
+    if (userObj) {
+      openDeleteModal(userObj)
     }
-    showAddModal.value = false
-    formData.value = { name: '', email: '', password: '', role_id: '', branch_id: '', store_id: '' }
-    fetchUsers()
-  } catch (error) {
-    console.error('Error saving user:', error)
   }
 }
 
 const editUser = (user) => {
-  formData.value = { 
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role_id: user.role_id,
-    branch_id: user.branch_id,
-    store_id: user.store_id
-  }
-  showAddModal.value = true
-}
-
-const deleteUser = async (id) => {
-  if (confirm('Are you sure you want to delete this user?')) {
-    try {
-      await api.delete(`/users/${id}`)
-      fetchUsers()
-    } catch (error) {
-      console.error('Error deleting user:', error)
-    }
-  }
+  // Placeholder for future edit functionality
+  console.log('Edit user:', user)
 }
 
 onMounted(() => {
   fetchUsers()
-  fetchRoles()
-  fetchBranches()
-  fetchStores()
 })
 </script>

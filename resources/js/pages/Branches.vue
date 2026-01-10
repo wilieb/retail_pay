@@ -1,237 +1,220 @@
 <template>
   <div class="p-6">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">Branches</h1>
-        <p class="text-gray-500 mt-1">Manage organization branches</p>
-      </div>
-      <button 
-        @click="showAddModal = true"
-        class="flex items-center gap-2 px-6 py-2.5 bg-[#2563eb] text-white rounded-xl hover:bg-[#1d4ed8] transition-colors font-medium"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        Add Branch
-      </button>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div 
-        v-for="branch in branches" 
-        :key="branch.id"
-        class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-100 overflow-hidden group"
-      >
-        <div class="p-6">
-          <div class="flex items-start justify-between mb-4">
-            <div>
-              <h3 class="text-lg font-bold text-gray-900">{{ branch.name }}</h3>
-              <p class="text-sm text-gray-500 mt-1">ID: {{ branch.id }}</p>
-            </div>
-            <div class="w-10 h-10 bg-[#2563eb]/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-              <svg class="w-5 h-5 text-[#2563eb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <DataTable
+      title="Branches"
+      subtitle="Manage organization branches"
+      :columns="columns"
+      :data="branchesData"
+      drawer-title="Branch Details"
+      @view="handleView"
+    >
+      <template #action="{ item }">
+        <div class="flex items-center gap-2 justify-center">
+          <button 
+            @click.stop="handleView(item)"
+            class="px-3 py-1.5 text-sm bg-[#2563eb]/10 text-[#2563eb] rounded-lg hover:bg-[#2563eb]/20 transition-colors font-medium"
+          >
+            View
+          </button>
+          <button 
+            @click.stop="openDeleteModal(item)"
+            class="px-3 py-1.5 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors font-medium"
+          >
+            Delete
+          </button>
+        </div>
+      </template>
+      <template #drawer-content="{ item }">
+        <div class="space-y-6">
+          <div class="flex items-start gap-4 p-5 bg-gradient-to-br from-[#2563eb]/5 to-blue-50 rounded-xl border border-[#2563eb]/10">
+            <div class="w-14 h-14 bg-[#2563eb] rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
               </svg>
             </div>
-          </div>
-
-          <div class="space-y-3 mb-6">
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span class="text-sm text-gray-600">Stores</span>
-              <span class="font-bold text-gray-900">{{ branch.stores?.length || 0 }}</span>
-            </div>
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span class="text-sm text-gray-600">Users</span>
-              <span class="font-bold text-gray-900">{{ branch.users?.length || 0 }}</span>
+            <div class="flex-1">
+              <h4 class="text-xl font-bold text-gray-900 mb-1">{{ item.name }}</h4>
+              <p class="text-sm text-gray-500">Branch ID: {{ item.id }}</p>
             </div>
           </div>
 
-          <div class="flex gap-2">
-            <button 
-              @click="editBranch(branch)"
-              class="flex-1 px-4 py-2 bg-[#2563eb]/10 text-[#2563eb] rounded-lg hover:bg-[#2563eb]/20 transition-colors font-medium text-sm"
-            >
-              Edit
-            </button>
-            <button 
-              @click="viewDetails(branch)"
-              class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
-            >
-              View
-            </button>
-            <button 
-              @click="deleteBranch(branch.id)"
-              class="flex-1 px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors font-medium text-sm"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <Modal 
-      v-if="showAddModal"
-      :title="formData.id ? 'Edit Branch' : 'Add Branch'"
-      @close="showAddModal = false"
-      @submit="saveBranch"
-    >
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Branch Name</label>
-          <input 
-            v-model="formData.name"
-            type="text"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
-            placeholder="Enter branch name"
-          />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
-          <input 
-            v-model="formData.location"
-            type="text"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
-            placeholder="Enter location"
-          />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-          <input 
-            v-model="formData.phone"
-            type="text"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
-            placeholder="Enter phone"
-          />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-          <input 
-            v-model="formData.email"
-            type="email"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
-            placeholder="Enter email"
-          />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Manager Name</label>
-          <input 
-            v-model="formData.manager_name"
-            type="text"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
-            placeholder="Enter manager name"
-          />
-        </div>
-      </div>
-    </Modal>
-
-    <Modal 
-      v-if="showDetailsModal"
-      title="Branch Details"
-      @close="showDetailsModal = false"
-    >
-      <div class="space-y-6">
-        <div class="p-4 bg-gray-50 rounded-lg">
-          <p class="text-sm text-gray-500 mb-1">Branch Name</p>
-          <p class="text-lg font-bold text-gray-900">{{ selectedBranch?.name }}</p>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
-            <p class="text-sm text-gray-500 mb-1">Total Stores</p>
-            <p class="text-2xl font-bold text-gray-900">{{ selectedBranch?.stores?.length || 0 }}</p>
-          </div>
-          <div class="p-4 bg-purple-50 rounded-lg border border-purple-100">
-            <p class="text-sm text-gray-500 mb-1">Total Users</p>
-            <p class="text-2xl font-bold text-gray-900">{{ selectedBranch?.users?.length || 0 }}</p>
-          </div>
-        </div>
-
-        <div v-if="selectedBranch?.stores?.length">
-          <h4 class="font-bold text-gray-900 mb-3">Stores in this Branch</h4>
-          <div class="space-y-2">
-            <div 
-              v-for="store in selectedBranch.stores"
-              :key="store.id"
-              class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-            >
-              <span class="text-sm font-medium text-gray-900">{{ store.name }}</span>
-              <span class="text-xs text-gray-500">ID: {{ store.id }}</span>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 bg-gray-50 rounded-xl">
+              <p class="text-sm text-gray-500 mb-1">Total Stores</p>
+              <p class="text-2xl font-bold text-gray-900">{{ item.stores?.length || 0 }}</p>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-xl">
+              <p class="text-sm text-gray-500 mb-1">Total Staff</p>
+              <p class="text-2xl font-bold text-gray-900">{{ item.users?.length || 0 }}</p>
             </div>
           </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <span class="text-sm font-medium text-gray-600">Phone</span>
+              <span class="text-sm font-semibold text-gray-900">{{ item.phone || 'N/A' }}</span>
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <span class="text-sm font-medium text-gray-600">Email</span>
+              <span class="text-sm font-semibold text-gray-900">{{ item.email || 'N/A' }}</span>
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <span class="text-sm font-medium text-gray-600">Manager</span>
+              <span class="text-sm font-semibold text-gray-900">{{ item.manager_name || 'Unassigned' }}</span>
+            </div>
+          </div>
+
+          <div v-if="item.stores?.length" class="pt-4 border-t border-gray-100">
+            <p class="text-sm font-semibold text-gray-900 mb-3">Associated Stores</p>
+            <div class="space-y-2">
+              <div 
+                v-for="store in item.stores"
+                :key="store.id"
+                class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              >
+                <span class="text-sm font-medium text-gray-900">{{ store.name }}</span>
+                <span class="text-xs text-gray-500">{{ store.id }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-gray-100">
+            <p class="text-xs text-gray-400 mb-2">Last Updated</p>
+            <p class="text-sm text-gray-600">{{ formatDate(item.updated_at) }}</p>
+          </div>
         </div>
-      </div>
+      </template>
+    </DataTable>
+
+    <Modal v-model="showDeleteModal" title="Delete Branch" :closeable="!loadingDelete">
+      <template #content>
+        <div class="space-y-4">
+          <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-red-800 font-medium">Are you sure you want to delete this branch?</p>
+          </div>
+          <div class="p-4 bg-gray-50 rounded-lg">
+            <p class="text-sm text-gray-600 mb-1">Branch Name</p>
+            <p class="text-lg font-bold text-gray-900">{{ branchToDelete?.name }}</p>
+          </div>
+          <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p class="text-sm text-yellow-800">
+              <strong>Warning:</strong> This action cannot be undone. All associated data will remain but the branch will be deleted.
+            </p>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button 
+            @click="showDeleteModal = false"
+            :disabled="loadingDelete"
+            class="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-100 rounded-lg font-medium transition"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="confirmDelete"
+            :disabled="loadingDelete"
+            class="px-6 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg font-medium transition"
+          >
+            {{ loadingDelete ? 'Deleting...' : 'Delete Branch' }}
+          </button>
+        </div>
+      </template>
     </Modal>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import DataTable from '@/components/DataTables.vue'
 import Modal from '@/components/Modal.vue'
 import { api } from '@/lib/axios'
 
-const branches = ref([])
-const showAddModal = ref(false)
-const showDetailsModal = ref(false)
-const selectedBranch = ref(null)
-const formData = ref({ id: null, name: '', location: '', phone: '', email: '', manager_name: '' })
+const authStore = useAuthStore()
+
+const columns = [
+  { key: 'name', label: 'Branch Name' },
+  { key: 'manager_name', label: 'Manager', cellClass: 'text-gray-700' },
+  { key: 'phone', label: 'Phone', cellClass: 'text-gray-700' },
+  { key: 'email', label: 'Email', cellClass: 'text-gray-700' },
+  { key: 'store_count', label: 'Stores', cellClass: 'text-center font-semibold' },
+  { key: 'action', label: 'Actions', cellClass: 'text-center' }
+]
+
+const branchesData = ref([])
+const showDeleteModal = ref(false)
+const branchToDelete = ref(null)
+const loadingDelete = ref(false)
+
+const formatDate = (date) => {
+  if (!date) return 'N/A'
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const handleView = (item) => {
+  // Drawer will be handled by DataTable component
+}
 
 const fetchBranches = async () => {
   try {
     const response = await api.get('/branches')
-    branches.value = response.data.data || response.data
+    const data = response.data.data || response.data
+    branchesData.value = data.map(branch => ({
+      ...branch,
+      store_count: branch.stores?.length || 0,
+      manager_name: branch.manager_name || 'Unassigned',
+      phone: branch.phone || 'N/A',
+      email: branch.email || 'N/A'
+    }))
   } catch (error) {
     console.error('Error fetching branches:', error)
   }
 }
 
-const saveBranch = async () => {
+const openDeleteModal = (branch) => {
+  branchToDelete.value = branch
+  showDeleteModal.value = true
+}
+
+const confirmDelete = async () => {
+  if (!branchToDelete.value) return
+  
+  loadingDelete.value = true
   try {
-    if (formData.value.id) {
-      await api.put(`/branches/${formData.value.id}`, {
-        name: formData.value.name,
-        location: formData.value.location,
-        phone: formData.value.phone,
-        email: formData.value.email,
-        manager_name: formData.value.manager_name
-      })
-    } else {
-      await api.post('/branches', {
-        name: formData.value.name,
-        location: formData.value.location,
-        phone: formData.value.phone,
-        email: formData.value.email,
-        manager_name: formData.value.manager_name
-      })
-    }
-    showAddModal.value = false
-    formData.value = { id: null, name: '', location: '', phone: '', email: '', manager_name: '' }
-    fetchBranches()
+    await api.delete(`/branches/${branchToDelete.value.id}`)
+    showDeleteModal.value = false
+    branchToDelete.value = null
+    await fetchBranches()
   } catch (error) {
-    console.error('Error saving branch:', error)
+    console.error('Error deleting branch:', error)
+  } finally {
+    loadingDelete.value = false
   }
 }
 
-const editBranch = (branch) => {
-  formData.value = { ...branch }
-  showAddModal.value = true
-}
-
-const deleteBranch = async (id) => {
-  if (confirm('Are you sure you want to delete this branch?')) {
-    try {
-      await api.delete(`/branches/${id}`)
-      fetchBranches()
-    } catch (error) {
-      console.error('Error deleting branch:', error)
+// Make openDeleteModal available to template
+const deleteBranch = (branch) => {
+  if (typeof branch === 'object') {
+    openDeleteModal(branch)
+  } else {
+    const branchObj = branchesData.value.find(b => b.id === branch)
+    if (branchObj) {
+      openDeleteModal(branchObj)
     }
   }
 }
 
-const viewDetails = (branch) => {
-  selectedBranch.value = branch
-  showDetailsModal.value = true
-}
-
-onMounted(fetchBranches)
+onMounted(() => {
+  fetchBranches()
+})
 </script>

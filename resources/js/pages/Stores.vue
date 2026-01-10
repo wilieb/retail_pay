@@ -1,221 +1,229 @@
 <template>
   <div class="p-6">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">Stores</h1>
-        <p class="text-gray-500 mt-1">Manage store locations and inventory</p>
-      </div>
-      <button 
-        @click="showAddModal = true"
-        class="flex items-center gap-2 px-6 py-2.5 bg-[#2563eb] text-white rounded-xl hover:bg-[#1d4ed8] transition-colors font-medium"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        Add Store
-      </button>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div 
-        v-for="store in stores"
-        :key="store.id"
-        class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-100 group"
-      >
-        <div class="p-6">
-          <div class="flex items-start justify-between mb-4">
-            <div>
-              <h3 class="text-lg font-bold text-gray-900">{{ store.name }}</h3>
-              <p class="text-sm text-gray-500 mt-1">Store ID: {{ store.id }}</p>
-            </div>
-            <div class="w-10 h-10 bg-[#2563eb]/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-              <svg class="w-5 h-5 text-[#2563eb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <DataTable
+      title="Stores"
+      subtitle="Manage store locations and inventory"
+      :columns="columns"
+      :data="storesData"
+      drawer-title="Store Details"
+      @view="handleView"
+    >
+      <template #action="{ item }">
+        <div class="flex items-center gap-2 justify-center">
+          <button 
+            @click.stop="handleView(item)"
+            class="px-3 py-1.5 text-sm bg-[#2563eb]/10 text-[#2563eb] rounded-lg hover:bg-[#2563eb]/20 transition-colors font-medium"
+          >
+            View
+          </button>
+          <button 
+            @click.stop="openDeleteModal(item)"
+            class="px-3 py-1.5 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors font-medium"
+          >
+            Delete
+          </button>
+        </div>
+      </template>
+      <template #drawer-content="{ item }">
+        <div class="space-y-6">
+          <div class="flex items-start gap-4 p-5 bg-gradient-to-br from-[#2563eb]/5 to-blue-50 rounded-xl border border-[#2563eb]/10">
+            <div class="w-14 h-14 bg-[#2563eb] rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
               </svg>
             </div>
-          </div>
-
-          <div class="space-y-3 mb-6">
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span class="text-sm text-gray-600">Branch</span>
-              <span class="font-bold text-gray-700">{{ store.branch?.name || 'N/A' }}</span>
-            </div>
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span class="text-sm text-gray-600">Products</span>
-              <span class="font-bold text-gray-900">{{ store.products?.length || 0 }}</span>
-            </div>
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span class="text-sm text-gray-600">Users</span>
-              <span class="font-bold text-gray-900">{{ store.users?.length || 0 }}</span>
+            <div class="flex-1">
+              <h4 class="text-xl font-bold text-gray-900 mb-1">{{ item.name }}</h4>
+              <p class="text-sm text-gray-500">Store ID: {{ item.id }}</p>
             </div>
           </div>
 
-          <div class="flex gap-2">
-            <button 
-              @click="editStore(store)"
-              class="flex-1 px-4 py-2 bg-[#2563eb]/10 text-[#2563eb] rounded-lg hover:bg-[#2563eb]/20 transition-colors font-medium text-sm"
-            >
-              Edit
-            </button>
-            <button 
-              @click="viewInventory(store)"
-              class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
-            >
-              Inventory
-            </button>
-            <button 
-              @click="deleteStore(store.id)"
-              class="flex-1 px-4 py-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors font-medium text-sm"
-            >
-              Delete
-            </button>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 bg-gray-50 rounded-xl">
+              <p class="text-sm text-gray-500 mb-1">Branch</p>
+              <p class="text-lg font-bold text-gray-900">{{ item.branch_name || 'N/A' }}</p>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-xl">
+              <p class="text-sm text-gray-500 mb-1">Products</p>
+              <p class="text-lg font-bold text-gray-900">{{ item.product_count }}</p>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <span class="text-sm font-medium text-gray-600">Store Manager</span>
+              <span class="text-sm font-semibold text-gray-900">{{ item.manager_name || 'Unassigned' }}</span>
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <span class="text-sm font-medium text-gray-600">Total Staff</span>
+              <span class="text-sm font-semibold text-gray-900">{{ item.staff_count }}</span>
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <span class="text-sm font-medium text-gray-600">Total Inventory Value</span>
+              <span class="text-sm font-bold text-[#10b981]">KES {{ formatNumber(item.inventory_value) }}</span>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-gray-100">
+            <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-3">Inventory</p>
+            <div class="space-y-2 max-h-48 overflow-y-auto">
+              <div v-if="item.products?.length === 0" class="text-sm text-gray-500 text-center py-4">
+                No products in this store
+              </div>
+              <div 
+                v-for="product in item.products?.slice(0, 10)"
+                :key="product.id"
+                class="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm"
+              >
+                <span class="font-medium text-gray-900">{{ product.name }}</span>
+                <span class="text-gray-600">{{ product.quantity }} units</span>
+              </div>
+              <div v-if="item.products?.length > 10" class="text-xs text-gray-500 text-center py-2">
+                +{{ item.products.length - 10 }} more products
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-gray-100">
+            <p class="text-xs text-gray-400 mb-2">Last Updated</p>
+            <p class="text-sm text-gray-600">{{ formatDate(item.updated_at) }}</p>
           </div>
         </div>
-      </div>
-    </div>
+      </template>
+    </DataTable>
 
-    <Modal 
-      v-if="showAddModal"
-      :title="formData.id ? 'Edit Store' : 'Add Store'"
-      @close="showAddModal = false; formData = { id: null, name: '', branch_id: '' }"
-      @submit="saveStore"
-    >
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Store Name</label>
-          <input 
-            v-model="formData.name"
-            type="text"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
-            placeholder="Enter store name"
-          />
+    <Modal v-model="showDeleteModal" title="Delete Store" :closeable="!loadingDelete">
+      <template #content>
+        <div class="space-y-4">
+          <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-red-800 font-medium">Are you sure you want to delete this store?</p>
+          </div>
+          <div class="p-4 bg-gray-50 rounded-lg">
+            <p class="text-sm text-gray-600 mb-1">Store Name</p>
+            <p class="text-lg font-bold text-gray-900">{{ storeToDelete?.name }}</p>
+          </div>
+          <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p class="text-sm text-yellow-800">
+              <strong>Warning:</strong> This action cannot be undone. All associated data will be retained but the store will be deleted.
+            </p>
+          </div>
         </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Branch</label>
-          <select 
-            v-model="formData.branch_id"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button 
+            @click="showDeleteModal = false"
+            :disabled="loadingDelete"
+            class="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-100 rounded-lg font-medium transition"
           >
-            <option value="">Select Branch</option>
-            <option v-for="branch in branches" :key="branch.id" :value="branch.id">
-              {{ branch.name }}
-            </option>
-          </select>
+            Cancel
+          </button>
+          <button 
+            @click="confirmDelete"
+            :disabled="loadingDelete"
+            class="px-6 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg font-medium transition"
+          >
+            {{ loadingDelete ? 'Deleting...' : 'Delete Store' }}
+          </button>
         </div>
-      </div>
-    </Modal>
-
-    <Modal 
-      v-if="showInventoryModal"
-      title="Store Inventory"
-      @close="showInventoryModal = false"
-    >
-      <div class="space-y-4">
-        <div class="p-4 bg-gray-50 rounded-lg mb-4">
-          <p class="text-sm text-gray-500 mb-1">Store</p>
-          <p class="text-lg font-bold text-gray-900">{{ selectedStore?.name }}</p>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-4 py-2 text-left font-semibold text-gray-700">Product</th>
-                <th class="px-4 py-2 text-right font-semibold text-gray-700">Quantity</th>
-                <th class="px-4 py-2 text-right font-semibold text-gray-700">Value</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr v-for="product in selectedStore?.products" :key="product.id" class="hover:bg-gray-50">
-                <td class="px-4 py-3 font-medium text-gray-900">{{ product.name }}</td>
-                <td class="px-4 py-3 text-right text-gray-700">{{ product.quantity }}</td>
-                <td class="px-4 py-3 text-right text-gray-900 font-semibold">KES {{ formatNumber(product.quantity * product.retail_price) }}</td>
-              </tr>
-              <tr v-if="!selectedStore?.products?.length">
-                <td colspan="3" class="px-4 py-3 text-center text-gray-500">No products in inventory</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      </template>
     </Modal>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import Modal from '@/components/Modal.vue'
-import { api } from '@/lib/axios'
+import { ref, onMounted } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import DataTable from '@/components/DataTables.vue';
+import Modal from '@/components/Modal.vue';
+import { api } from '@/lib/axios';
 
-const stores = ref([])
-const branches = ref([])
-const showAddModal = ref(false)
-const showInventoryModal = ref(false)
-const selectedStore = ref(null)
-const formData = ref({ id: null, name: '', branch_id: '' })
+const authStore = useAuthStore();
+
+const columns = [
+  { key: 'name', label: 'Store Name' },
+  { key: 'branch_name', label: 'Branch' },
+  { key: 'manager_name', label: 'Manager', cellClass: 'text-gray-700' },
+  { key: 'product_count', label: 'Products', cellClass: 'text-center font-semibold' },
+  { key: 'staff_count', label: 'Staff', cellClass: 'text-center' },
+  { key: 'action', label: 'Actions', cellClass: 'text-center' }
+];
+
+const storesData = ref([]);
+const showDeleteModal = ref(false);
+const storeToDelete = ref(null);
+const loadingDelete = ref(false);
 
 const formatNumber = (num) => {
-  return new Intl.NumberFormat('en-US').format(num)
-}
+  return new Intl.NumberFormat('en-US').format(num);
+};
+
+const formatDate = (date) => {
+  if (!date) return 'N/A'
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+};
+
+const handleView = (item) => {
+} 
 
 const fetchStores = async () => {
   try {
     const response = await api.get('/stores')
-    stores.value = response.data.data || response.data
+    const data = response.data.data || response.data
+    storesData.value = data.map(store => ({
+      ...store,
+      branch_name: store.branch?.name || 'N/A',
+      manager_name: store.manager_name || 'Unassigned',
+      product_count: store.products?.length || 0,
+      staff_count: store.users?.length || 0,
+      inventory_value: (store.products || []).reduce((sum, p) => sum + (p.quantity * p.unit_price || 0), 0)
+    }));
   } catch (error) {
-    console.error('Error fetching stores:', error)
+    console.error('Error fetching stores:', error);
   }
 }
 
-const fetchBranches = async () => {
+const openDeleteModal = (store) => {
+  storeToDelete.value = store;
+  showDeleteModal.value = true;
+}
+
+const confirmDelete = async () => {
+  if (!storeToDelete.value) return;
+  
+  loadingDelete.value = true;
   try {
-    const response = await api.get('/branches')
-    branches.value = response.data.data || response.data
+    await api.delete(`/stores/${storeToDelete.value.id}`);
+    showDeleteModal.value = false;
+    storeToDelete.value = null;
+    await fetchStores();
   } catch (error) {
-    console.error('Error fetching branches:', error)
+    console.error('Error deleting store:', error);
+  } finally {
+    loadingDelete.value = false;
   }
 }
 
-const saveStore = async () => {
-  try {
-    if (formData.value.id) {
-      const { id, ...data } = formData.value
-      await api.put(`/stores/${id}`, data)
-    } else {
-      await api.post('/stores', { name: formData.value.name, branch_id: formData.value.branch_id })
-    }
-    showAddModal.value = false
-    formData.value = { id: null, name: '', branch_id: '' }
-    fetchStores()
-  } catch (error) {
-    console.error('Error saving store:', error)
-  }
-}
-
-const editStore = (store) => {
-  formData.value = { id: store.id, name: store.name, branch_id: store.branch_id }
-  showAddModal.value = true
-}
-
-const deleteStore = async (id) => {
-  if (confirm('Are you sure you want to delete this store?')) {
-    try {
-      await api.delete(`/stores/${id}`)
-      fetchStores()
-    } catch (error) {
-      console.error('Error deleting store:', error)
+const deleteStore = (store) => {
+  if (typeof store === 'object') {
+    openDeleteModal(store)
+  } else {
+    const storeObj = storesData.value.find(s => s.id === store)
+    if (storeObj) {
+      openDeleteModal(storeObj)
     }
   }
-}
-
-const viewInventory = (store) => {
-  selectedStore.value = store
-  showInventoryModal.value = true
 }
 
 onMounted(() => {
   fetchStores()
-  fetchBranches()
 })
 </script>

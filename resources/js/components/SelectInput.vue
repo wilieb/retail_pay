@@ -13,6 +13,7 @@
       :class="selectClasses"
       :disabled="disabled"
       @change="$emit('update:modelValue', $event.target.value)"
+      :style="{ appearance: 'none', backgroundImage: 'url(data:image/svg+xml;utf8,%3Csvg%20fill=%22none%22%20stroke=%22%236B7280%22%20viewBox=%220%200%2024%2024%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%20stroke-width=%222%22%20d=%22M19%2014l-7%207m0%200l-7-7m7%207V3%22%3E%3C/path%3E%3C/svg%3E)', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', backgroundSize: '1.25rem', paddingRight: '2.5rem' }"
     >
       <option v-if="placeholder" value="">{{ placeholder }}</option>
       <option v-for="option in options" :key="option.value" :value="option.value">
@@ -47,7 +48,7 @@ const props = defineProps({
 defineEmits(['update:modelValue'])
 
 const selectClasses = computed(() => {
-  const baseClasses = 'w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white'
+  const baseClasses = 'w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white pr-12'
   const borderClasses = props.error 
     ? 'border-red-300 focus:ring-red-200 focus:border-red-500'
     : 'border-gray-200 focus:ring-[#2563eb]/20 focus:border-[#2563eb]'
