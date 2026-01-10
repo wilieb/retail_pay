@@ -184,7 +184,7 @@
           </router-link>
 
           <router-link
-            to="/transactions"
+            to="/transfers"
             :aria-disabled="!hasRole(['branch_manager', 'admin'])"
             :class="[
               'flex items-center gap-4 p-5 rounded-xl transition-all group',
