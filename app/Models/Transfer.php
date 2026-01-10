@@ -10,6 +10,7 @@ class Transfer extends Model
     use HasFactory;
 
     protected $fillable = [
+        'transfer_id',
         'product_id',
         'quantity',
         'from_store_id',

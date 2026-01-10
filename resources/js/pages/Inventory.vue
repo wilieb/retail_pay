@@ -97,13 +97,13 @@ const authStore = useAuthStore()
 const columns = [
   { key: 'product_name', label: 'Product Name' },
   { key: 'sku', label: 'SKU' },
-  { key: 'quantity', label: 'Quantity', cellClass: 'text-gray-900 font-semibold' },
+  { key: 'quantity', label: 'Quantity' },
   { 
     key: 'remaining_stock', 
     label: 'Remaining Stock',
     cellClass: (item) => getStockColorClass(item.remaining_stock, item.quantity)
   },
-  { key: 'action', label: 'Action' }
+  // { key: 'action', label: 'Action' }
 ]
 
 const inventoryData = ref([])
@@ -112,8 +112,8 @@ const stores = ref([])
 
 const getStockColorClass = (remaining, total) => {
   const percentage = (remaining / total) * 100
-  if (percentage <= 20) return 'text-[#f43f5e] font-bold'
-  if (percentage <= 50) return 'text-[#fbbf24] font-bold'
+  if (percentage <= 20) return 'text-[#f43f5e]/50 font-bold'
+  if (percentage <= 50) return 'text-[#fbbf24]/50 font-bold'
   return 'text-[#10b981] font-bold'
 }
 

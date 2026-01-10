@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Transfer;
+use App\Services\TransactionNumberGenerator;
 use Illuminate\Http\Request;
 
 class TransferController
@@ -42,6 +43,7 @@ class TransferController
         ]);
 
         $transfer = Transfer::create([
+            'transfer_id' => TransactionNumberGenerator::generate('transfers'),
             ...$validated,
             'requested_by_id' => $request->user()->id,
             'status' => 'pending',

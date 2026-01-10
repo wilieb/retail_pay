@@ -59,8 +59,6 @@ class UserController
             'role_id' => 'sometimes|exists:roles,id',
             'branch_id' => 'nullable|exists:branches,id',
             'store_id' => 'nullable|exists:stores,id',
-            'phone' => 'nullable|string',
-            'address' => 'nullable|string',
             'password' => ['sometimes', Password::min(8)],
         ]);
 

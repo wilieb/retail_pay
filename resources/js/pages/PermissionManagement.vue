@@ -2,7 +2,7 @@
   <div class="p-6">
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">Permissions Management</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Permissions Management</h1>
         <p class="text-gray-500 mt-1">Configure roles and permissions for your organization</p>
       </div>
       <button 
@@ -19,9 +19,9 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div class="lg:col-span-1">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden sticky top-6">
-          <div class="bg-gradient-to-br from-[#2563eb] to-blue-600 p-6 text-white">
+          <div class="flex justify-between bg-[#2563eb]/10 p-6 text-gray-900">
             <h2 class="text-lg font-bold">Roles</h2>
-            <p class="text-blue-100 text-sm mt-1">{{ roles.length }} roles configured</p>
+            <p class="text-gray-700 text-sm mt-1">{{ roles.length }} roles configured</p>
           </div>
 
           <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
@@ -32,7 +32,7 @@
               :class="[
                 'w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-l-4 font-medium',
                 selectedRole?.id === role.id 
-                  ? 'bg-[#2563eb]/5 border-l-[#2563eb] text-[#2563eb]'
+                  ? 'bg-[#2563eb]/5 text-[#2563eb]'
                   : 'border-l-transparent text-gray-700'
               ]"
             >

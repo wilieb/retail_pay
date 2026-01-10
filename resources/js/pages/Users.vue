@@ -1,11 +1,22 @@
 <template>
   <div class="p-6">
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900">Staff Management</h1>
-      <p class="text-gray-500 mt-1">Manage users and their roles</p>
+    <div class="mb-6 flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Staff Management</h1>
+        <p class="text-gray-500 mt-1">Manage users and their roles</p>
+      </div>
+      <!-- <button 
+        @click="openAddModal"
+        class="bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 font-medium transition"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add User
+      </button> -->
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead class="bg-gray-50 border-b border-gray-100">
@@ -22,9 +33,6 @@
             <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50 transition-colors">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-[#2563eb]/10 flex items-center justify-center">
-                    <span class="text-sm font-bold text-[#2563eb]">{{ user.name.charAt(0) }}</span>
-                  </div>
                   <span class="font-medium text-gray-900">{{ user.name }}</span>
                 </div>
               </td>
@@ -44,7 +52,7 @@
                     </svg>
                   </button>
                   <button 
-                    @click="deleteUser(user.id)"
+                    @click="deleteUser(user)"
                     class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                     title="Delete"
                   >
@@ -65,8 +73,7 @@
       </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <Modal v-model="showDeleteModal" title="Delete User" :closeable="!loadingDelete">
+    <Modal v-if="showDeleteModal" title="Delete User" @close="closeDeleteModal">
       <template #content>
         <div class="space-y-4">
           <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -86,7 +93,7 @@
       <template #footer>
         <div class="flex justify-end gap-3">
           <button 
-            @click="showDeleteModal = false"
+            @click="closeDeleteModal"
             :disabled="loadingDelete"
             class="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-100 rounded-lg font-medium transition"
           >
@@ -104,94 +111,159 @@
     </Modal>
 
     <Modal 
-      v-if="showAddModal"
-      :title="formData.id ? 'Edit User' : 'Add User'"
-      @close="showAddModal = false"
-      @submit="saveUser"
+      v-if="showEditModal"
+      :title="isEditMode ? 'Edit User' : 'Add User'"
+      @close="closeEditModal"
     >
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
-          <input 
+      <template #content>
+        <div class="space-y-5">
+          <TextInput
             v-model="formData.name"
-            type="text"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
+            label="Name"
             placeholder="Enter user name"
+            :error="errors.name"
+            :required="true"
+            @update:modelValue="errors.name = ''"
           />
-        </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-          <input 
+          <TextInput
             v-model="formData.email"
+            label="Email"
             type="email"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
             placeholder="Enter email address"
+            :error="errors.email"
+            :required="true"
+            @update:modelValue="errors.email = ''"
           />
-        </div>
 
-        <div v-if="!formData.id">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-          <input 
+          <TextInput
+            v-if="!isEditMode"
             v-model="formData.password"
+            label="Password"
             type="password"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
-            placeholder="Enter password"
+            placeholder="Enter password (min 8 characters)"
+            :error="errors.password"
+            :required="true"
+            @update:modelValue="errors.password = ''"
           />
-        </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
-          <select 
+          <TextInput
+            v-if="isEditMode"
+            v-model="formData.password"
+            label="Password"
+            type="password"
+            placeholder="Leave blank to keep current password"
+            :error="errors.password"
+            @update:modelValue="errors.password = ''"
+          />
+
+          <SelectInput
             v-model="formData.role_id"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
-          >
-            <option value="">Select Role</option>
-            <option v-for="role in roles" :key="role.id" :value="role.id">
-              {{ role.name }}
-            </option>
-          </select>
-        </div>
+            label="Role"
+            placeholder="Select role"
+            :error="errors.role_id"
+            :required="true"
+            :options="roles.map(r => ({ value: r.id, label: r.name }))"
+            @update:modelValue="errors.role_id = ''"
+          />
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Branch</label>
-          <select 
+          <SelectInput
             v-model="formData.branch_id"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
-          >
-            <option value="">Select Branch</option>
-            <option v-for="branch in branches" :key="branch.id" :value="branch.id">
-              {{ branch.name }}
-            </option>
-          </select>
-        </div>
+            label="Branch"
+            placeholder="Select branch (optional)"
+            :error="errors.branch_id"
+            :options="branches.map(b => ({ value: b.id, label: b.name }))"
+            @update:modelValue="errors.branch_id = ''"
+          />
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Store</label>
-          <select 
+          <SelectInput
             v-model="formData.store_id"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb]"
-          >
-            <option value="">Select Store (Optional)</option>
-            <option v-for="store in stores" :key="store.id" :value="store.id">
-              {{ store.name }}
-            </option>
-          </select>
+            label="Store"
+            placeholder="Select store (optional)"
+            :error="errors.store_id"
+            :options="stores.map(s => ({ value: s.id, label: s.name }))"
+            @update:modelValue="errors.store_id = ''"
+          />
+
+          <div v-if="errors.general" class="p-4 bg-red-50 border-l-4 border-red-500 rounded-r">
+            <p class="text-red-700 text-sm">{{ errors.general }}</p>
+          </div>
         </div>
-      </div>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button 
+            @click="closeEditModal"
+            :disabled="loadingSave"
+            class="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-100 rounded-lg font-medium transition"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="saveUser"
+            :disabled="!isFormValid || loadingSave"
+            class="px-6 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition"
+          >
+            {{ loadingSave ? 'Saving...' : (isEditMode ? 'Update User' : 'Add User') }}
+          </button>
+        </div>
+      </template>
     </Modal>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Modal from '@/components/Modal.vue'
+import TextInput from '@/components/TextInput.vue'
+import SelectInput from '@/components/SelectInput.vue'
 import { api } from '@/lib/axios'
 
 const users = ref([])
+const roles = ref([])
+const branches = ref([])
+const stores = ref([])
 const showDeleteModal = ref(false)
+const showEditModal = ref(false)
 const userToDelete = ref(null)
 const loadingDelete = ref(false)
+const loadingSave = ref(false)
+
+const formData = ref({
+  id: null,
+  name: '',
+  email: '',
+  password: '',
+  role_id: '',
+  branch_id: '',
+  store_id: ''
+})
+
+const errors = ref({
+  name: '',
+  email: '',
+  password: '',
+  role_id: '',
+  branch_id: '',
+  store_id: '',
+  general: ''
+})
+
+const isEditMode = computed(() => !!formData.value.id)
+
+const isFormValid = computed(() => {
+  const hasName = formData.value.name.trim() !== ''
+  const hasEmail = formData.value.email.trim() !== ''
+  const hasRole = formData.value.role_id !== ''
+  
+  if (isEditMode.value) {
+    return hasName && hasEmail && hasRole
+  }
+  
+  const hasPassword = formData.value.password.trim() !== '' && formData.value.password.length >= 8
+  return hasName && hasEmail && hasPassword && hasRole
+})
 
 const fetchUsers = async () => {
   try {
@@ -202,9 +274,181 @@ const fetchUsers = async () => {
   }
 }
 
+const fetchRoles = async () => {
+  try {
+    const response = await api.get('/roles')
+    roles.value = response.data.data || response.data
+  } catch (error) {
+    console.error('Error fetching roles:', error)
+  }
+}
+
+const fetchBranches = async () => {
+  try {
+    const response = await api.get('/branches')
+    branches.value = response.data.data || response.data
+  } catch (error) {
+    console.error('Error fetching branches:', error)
+  }
+}
+
+const fetchStores = async () => {
+  try {
+    const response = await api.get('/stores')
+    stores.value = response.data.data || response.data
+  } catch (error) {
+    console.error('Error fetching stores:', error)
+  }
+}
+
+const openAddModal = () => {
+  formData.value = {
+    id: null,
+    name: '',
+    email: '',
+    password: '',
+    role_id: '',
+    branch_id: '',
+    store_id: ''
+  }
+  errors.value = {
+    name: '',
+    email: '',
+    password: '',
+    role_id: '',
+    branch_id: '',
+    store_id: '',
+    general: ''
+  }
+  showEditModal.value = true
+}
+
+const editUser = (user) => {
+  formData.value = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    password: '',
+    role_id: user.role_id || '',
+    branch_id: user.branch_id || '',
+    store_id: user.store_id || ''
+  }
+  errors.value = {
+    name: '',
+    email: '',
+    password: '',
+    role_id: '',
+    branch_id: '',
+    store_id: '',
+    general: ''
+  }
+  showEditModal.value = true
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  formData.value = {
+    id: null,
+    name: '',
+    email: '',
+    password: '',
+    role_id: '',
+    branch_id: '',
+    store_id: ''
+  }
+  errors.value = {
+    name: '',
+    email: '',
+    password: '',
+    role_id: '',
+    branch_id: '',
+    store_id: '',
+    general: ''
+  }
+}
+
+const validateForm = () => {
+  errors.value = {
+    name: '',
+    email: '',
+    password: '',
+    role_id: '',
+    branch_id: '',
+    store_id: '',
+    general: ''
+  }
+
+  if (!formData.value.name.trim()) {
+    errors.value.name = 'Name is required'
+  }
+
+  if (!formData.value.email.trim()) {
+    errors.value.email = 'Email is required'
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.value.email)) {
+    errors.value.email = 'Please enter a valid email'
+  }
+
+  if (!isEditMode.value && !formData.value.password.trim()) {
+    errors.value.password = 'Password is required'
+  } else if (!isEditMode.value && formData.value.password.length < 8) {
+    errors.value.password = 'Password must be at least 8 characters'
+  } else if (isEditMode.value && formData.value.password.trim() && formData.value.password.length < 8) {
+    errors.value.password = 'Password must be at least 8 characters'
+  }
+
+  if (!formData.value.role_id) {
+    errors.value.role_id = 'Role is required'
+  }
+
+  return Object.values(errors.value).every(error => error === '')
+}
+
+const saveUser = async () => {
+  if (!validateForm()) return
+
+  loadingSave.value = true
+  try {
+    const payload = {
+      name: formData.value.name,
+      email: formData.value.email,
+      role_id: parseInt(formData.value.role_id)
+    }
+
+    if (formData.value.password.trim()) {
+      payload.password = formData.value.password
+    }
+
+    if (formData.value.branch_id) {
+      payload.branch_id = parseInt(formData.value.branch_id)
+    }
+
+    if (formData.value.store_id) {
+      payload.store_id = parseInt(formData.value.store_id)
+    }
+
+    if (isEditMode.value) {
+      await api.put(`/users/${formData.value.id}`, payload)
+    } else {
+      await api.post('/users', payload)
+    }
+
+    closeEditModal()
+    await fetchUsers()
+  } catch (error) {
+    errors.value.general = error.response?.data?.message || 'Error saving user'
+  } finally {
+    loadingSave.value = false
+  }
+}
+
 const openDeleteModal = (user) => {
   userToDelete.value = user
   showDeleteModal.value = true
+}
+
+const closeDeleteModal = () => {
+  userToDelete.value = null
+  showDeleteModal.value = false
 }
 
 const confirmDelete = async () => {
@@ -213,8 +457,7 @@ const confirmDelete = async () => {
   loadingDelete.value = true
   try {
     await api.delete(`/users/${userToDelete.value.id}`)
-    showDeleteModal.value = false
-    userToDelete.value = null
+    closeDeleteModal()
     await fetchUsers()
   } catch (error) {
     console.error('Error deleting user:', error)
@@ -223,24 +466,22 @@ const confirmDelete = async () => {
   }
 }
 
-// Make openDeleteModal available to template
 const deleteUser = (user) => {
-  if (typeof user === 'object') {
-    openDeleteModal(user)
-  } else {
-    const userObj = users.value.find(u => u.id === user)
-    if (userObj) {
-      openDeleteModal(userObj)
-    }
-  }
-}
-
-const editUser = (user) => {
-  // Placeholder for future edit functionality
-  console.log('Edit user:', user)
+  openDeleteModal(user)
 }
 
 onMounted(() => {
   fetchUsers()
+  fetchRoles()
+  fetchBranches()
+  fetchStores()
 })
 </script>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+* {
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+</style>

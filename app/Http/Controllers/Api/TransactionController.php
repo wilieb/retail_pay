@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Transaction;
+use App\Services\TransactionNumberGenerator;
 use Illuminate\Http\Request;
 
 class TransactionController
@@ -38,16 +39,30 @@ class TransactionController
 
     public function createSale(Request $request)
     {
+        $userRole = $request->user()->role->name ?? 'user';
+        $isAdminOrBranchManager = in_array($userRole, ['admin', 'branch_manager']);
+        
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
             'amount' => 'required|numeric|min:0',
+            'from_store_id' => $isAdminOrBranchManager ? 'required|exists:stores,id' : 'nullable|exists:stores,id',
         ]);
 
+        if ($isAdminOrBranchManager) {
+            $fromStoreId = $validated['from_store_id'];
+        } else {
+            $fromStoreId = $request->user()->store_id;
+        }
+
         $transaction = Transaction::create([
-            ...$validated,
+            'transaction_id' => TransactionNumberGenerator::generate('sales'),
+            'product_id' => $validated['product_id'],
+            'quantity' => $validated['quantity'],
+            'amount' => $validated['amount'],
             'transaction_type' => 'sales',
-            'from_store_id' => $request->user()->store_id,
+            'from_store_id' => $fromStoreId,
+            'to_store_id' => $fromStoreId,
             'user_id' => $request->user()->id,
             'transaction_date' => now(),
         ]);

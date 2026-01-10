@@ -14,12 +14,12 @@
       <span>Inventory</span>
     </router-link>
 
-    <router-link to="/branch-inventory" class="nav-link" :class="{ 'active': route.name === 'branch-inventory' }">
+    <!-- <router-link to="/branch-inventory" class="nav-link" :class="{ 'active': route.name === 'branch-inventory' }">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
       </svg>
       <span>Branch Inventory</span>
-    </router-link>
+    </router-link> -->
 
     <router-link v-if="hasRole(['store_manager', 'branch_manager', 'admin'])" to="/sales" class="nav-link" :class="{ 'active': route.name === 'sales' }">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,7 +48,7 @@
       <span>Products</span>
     </router-link>
 
-    <router-link v-if="hasRole(['admin'])" to="/branches" class="nav-link" :class="{ 'active': route.name === 'branches' }">
+    <!-- <router-link v-if="hasRole(['admin'])" to="/branches" class="nav-link" :class="{ 'active': route.name === 'branches' }">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
       </svg>
@@ -60,7 +60,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
       </svg>
       <span>Stores</span>
-    </router-link>
+    </router-link> -->
 
     <router-link v-if="hasRole(['admin'])" to="/users" class="nav-link" :class="{ 'active': route.name === 'users' }">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
