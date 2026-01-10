@@ -21,7 +21,7 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <div class="bg-white rounded-lg p-6 shadow-xs hover:shadow-sm transition-shadow">
-        <div class="flex items-start justify-between mb-4">
+        <div class="flex items-start justify-between mb-0">
           <div>
              <h3 class="text-sm font-medium text-gray-500 mb-1">Total Products</h3>
               <p class="text-3xl font-bold text-gray-900 mb-1">{{ stats.totalProducts }}</p>
@@ -30,7 +30,7 @@
       </div>
 
       <div class="bg-white rounded-lg p-6 shadow-xs hover:shadow-sm transition-shadow">
-        <div class="flex items-start justify-between mb-4">
+        <div class="flex items-start justify-between mb-0">
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-1">Low Stock Items</h3>
             <p class="text-3xl font-bold text-gray-900 mb-1">{{ stats.lowStockItems }}</p>
@@ -39,7 +39,7 @@
       </div>
 
       <div class="bg-white rounded-lg p-6 shadow-xs hover:shadow-sm transition-shadow">
-        <div class="flex items-start justify-between mb-4">
+        <div class="flex items-start justify-between mb-0">
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-1">Inventory Value</h3>
             <p class="text-3xl font-bold text-gray-900 mb-1">KES {{ formatNumber(stats.inventoryValue) }}</p>
@@ -48,7 +48,7 @@
       </div>
 
       <div class="bg-white rounded-lg p-6 shadow-xs hover:shadow-sm transition-shadow">
-        <div class="flex items-start justify-between mb-4">
+        <div class="flex items-start justify-between mb-0">
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-1">Total Stock Units</h3>
             <p class="text-3xl font-bold text-gray-900 mb-1">{{ formatNumber(stats.totalStockUnits) }}</p>
@@ -57,7 +57,7 @@
       </div>
 
       <div class="bg-white rounded-lg p-6 shadow-xs hover:shadow-sm transition-shadow">
-        <div class="flex items-start justify-between mb-4">
+        <div class="flex items-start justify-between mb-0">
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-1">Total Sales</h3>
             <p class="text-3xl font-bold text-gray-900 mb-1">{{ stats.totalSales }}</p>
@@ -66,7 +66,7 @@
       </div>
 
       <div class="bg-white rounded-lg p-6 shadow-xs hover:shadow-sm transition-shadow">
-        <div class="flex items-start justify-between mb-4">
+        <div class="flex items-start justify-between mb-0">
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-1">Total Revenue</h3>
             <p class="text-3xl font-bold text-gray-900 mb-1">KES {{ formatNumber(stats.totalRevenue) }}</p>
@@ -75,7 +75,7 @@
       </div>
 
       <div class="bg-white rounded-lg p-6 shadow-xs hover:shadow-sm transition-shadow">
-        <div class="flex items-start justify-between mb-4">
+        <div class="flex items-start justify-between mb-0">
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-1">Pending Transfers</h3>
             <p class="text-3xl font-bold text-gray-900 mb-1">{{ stats.pendingTransfers }}</p>
@@ -141,9 +141,15 @@
         </div>
 
         <div class="space-y-4">
-              <router-link 
-                to="/products" 
-                class="flex items-center gap-4 p-5 bg-gray-50 rounded-xl transition-all group"
+          <router-link 
+            to="/transfers"
+            :aria-disabled="!hasRole(['branch_manager', 'admin'])"
+            :class="[
+              'flex items-center gap-4 p-5 rounded-xl transition-all group',
+              hasRole(['branch_manager', 'admin'])
+                ? 'bg-gray-50 hover:bg-gray-100 cursor-pointer'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none'
+            ]"
           >
             <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg class="w-6 h-6 text-grey-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,8 +157,8 @@
               </svg>
             </div>
             <div class="flex-1">
-              <h4 class="font-bold text-gray-900 text-lg mb-1">Manage Products</h4>
-              <p class="text-sm text-gray-600">View and manage product catalog</p>
+              <h4 class="font-bold text-gray-900 text-lg mb-1">Manage Transfer</h4>
+              <p class="text-sm text-gray-600">View and create stock transfers</p>
             </div>
             <svg class="w-5 h-5 text-grey-200 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -177,9 +183,15 @@
             </svg>
           </router-link>
 
-          <router-link 
-            to="/transactions" 
-            class="flex items-center gap-4 p-5 bg-gray-50 rounded-xl transition-all group"
+          <router-link
+            to="/transactions"
+            :aria-disabled="!hasRole(['branch_manager', 'admin'])"
+            :class="[
+              'flex items-center gap-4 p-5 rounded-xl transition-all group',
+              hasRole(['branch_manager', 'admin'])
+                ? 'bg-gray-50 hover:bg-gray-100 cursor-pointer'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none'
+            ]"
           >
             <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg class="w-6 h-6 text-grey-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,6 +227,12 @@ const stats = ref({
   totalRevenue: 0,
   pendingTransfers: 0
 })
+
+const hasRole = (roles) => {
+  if (!Array.isArray(roles)) roles = [roles]
+  if (!authStore.user?.role) return false
+  return roles.includes(authStore.user.role.name)
+}
 
 const getUserRoleLabel = () => {
   const role = authStore.user?.role?.name;
