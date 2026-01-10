@@ -17,7 +17,7 @@
       </button>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-2">
       <div class="bg-white rounded-lg p-6 shadow-xs border border-gray-100">
         <p class="text-sm text-gray-400 mb-1">Pending Approval</p>
         <p class="text-3xl font-bold text-gray-600">{{ transfers.filter(t => t.status === 'pending').length }}</p>
@@ -36,7 +36,7 @@
       </div>
     </div>
 
-    <div class="mb-4 flex gap-2">
+    <div class="m-4 flex gap-2">
       <button 
         @click="filterStatus = ''"
         :class="[
