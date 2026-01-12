@@ -198,6 +198,10 @@ const props = defineProps({
   itemsPerPage: {
     type: Number,
     default: 10
+  },
+  closeDrawer: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -279,6 +283,13 @@ const displayedPages = computed(() => {
 
 watch([searchQuery, selectedBranch, selectedStore], () => {
   currentPage.value = 1
+})
+
+watch(() => props.closeDrawer, (newVal) => {
+  if (newVal && newVal === true) {
+    showDrawer.value = false
+    selectedItem.value = null
+  }
 })
 
 const getNestedValue = (obj, path) => {
