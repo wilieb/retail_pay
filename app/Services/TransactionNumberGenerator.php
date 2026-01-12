@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Transaction;
+use App\Models\Transfer;
+use Illuminate\Support\Facades\Log;
 
 class TransactionNumberGenerator
 {
@@ -20,13 +22,21 @@ class TransactionNumberGenerator
         $year = now()->format('y');
         $prefix = $prefixMap[$type] . $year;
 
-        $lastTransaction = Transaction::where('transaction_type', $type)
-            ->where('transaction_id', 'like', $prefix . '%')
-            ->orderByDesc('id')
-            ->first();
+        $lastTransaction = null;
+        
+        if($type === 'sales'){
+            $lastTransaction = Transaction::where('transaction_type', $type)
+                ->where('transaction_id', 'like', $prefix . '%')
+                ->orderByDesc('id')
+                ->first();
+        } else {
+            $lastTransaction = Transfer::where('transfer_id', 'like', $prefix . '%')
+                ->orderByDesc('id')
+                ->first();
+        }
 
         if ($lastTransaction) {
-            $lastNumber = intval(substr($lastTransaction->transaction_id, -4));
+            $lastNumber = $type === 'sales' ? intval(substr($lastTransaction->transaction_id, -4)) : intval(substr($lastTransaction->transfer_id, -4));
             $nextNumber = $lastNumber + 1;
         } else {
             $nextNumber = 1;
