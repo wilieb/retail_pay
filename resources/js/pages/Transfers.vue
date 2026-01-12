@@ -68,6 +68,7 @@
       subtitle=""
       :columns="columns"
       :data="filteredTransfers"
+      :close-drawer="closeDrawer"
       drawer-title="Transfer Details"
       @view="viewDetails"
       @approve="handleApprove"
@@ -152,7 +153,7 @@
                   Approve Transfer
                 </button>
                 <button 
-                  @click="handleReject(item)"
+                  @click="confirmReject = true; selectedTransfer = item"
                   class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-lg transition-colors"
                 >
                   Reject Transfer
@@ -249,6 +250,35 @@
         </div>
       </template>
     </Modal>
+
+    <Modal v-if="confirmReject" @close="confirmReject = false" title="Reject Transfer">
+      <template #content>
+        <TextInput
+          v-model="rejectReason"
+          label="Enter Reason for Rejection"
+          type="text"
+          placeholder="Enter your reason"
+          :error="errors.rejectReason"
+          :required="true"
+        />
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button 
+            @click="confirmReject = false"
+            class="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="handleReject(selectedTransfer)"
+            class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition"
+          >
+            Reject
+          </button>
+        </div>  
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -267,6 +297,10 @@ const stores = ref([])
 const showTransferModal = ref(false)
 const filterStatus = ref('')
 const loading = ref(false)
+const closeDrawer = ref(false)
+const confirmReject = ref(false)
+const selectedTransfer = ref(null)
+const rejectReason = ref('')
 
 const formData = ref({
   from_store_id: '',
@@ -280,7 +314,8 @@ const errors = ref({
   from_store_id: '',
   to_store_id: '',
   product_id: '',
-  quantity: ''
+  quantity: '',
+  rejectReason: '',
 })
 
 const columns = [
@@ -423,24 +458,25 @@ const handleApprove = async (transfer) => {
   try {
     await api.put(`/transfers/${transfer.id}/approve`)
     await fetchTransfers()
-    if (dataTableRef.value && dataTableRef.value.closeDrawer) {
-      dataTableRef.value.closeDrawer()
-    }
+    closeDrawer.value = true;
   } catch (error) {
     console.error('Error approving transfer:', error)
   }
 }
 
 const handleReject = async (transfer) => {
-  const reason = prompt('Enter rejection reason:')
-  if (!reason) return
+  const reason = rejectReason.value.trim() ? rejectReason.value.trim() : ''
+  if (!reason) {
+    errors.value.rejectReason = 'Rejection reason is required'
+    return
+  }
   
   try {
     await api.put(`/transfers/${transfer.id}/reject`, { rejection_reason: reason })
     await fetchTransfers()
-    if (dataTableRef.value && dataTableRef.value.closeDrawer) {
-      dataTableRef.value.closeDrawer()
-    }
+    closeDrawer.value = true;
+    confirmReject.value = false
+    rejectReason.value = ''
   } catch (error) {
     console.error('Error rejecting transfer:', error)
   }
